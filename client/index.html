@@ -24,46 +24,46 @@
 </head>
 <body>
     <div id="app">
-            <h1>haloooo</h1>
+            <h1>Image Uploader</h1>
             <div class="container">
                 <div class="row">
                     <div class="col-lg-2 col-md-12">
-                            <h3>request token</h3>    
-                            <input type="text" placeholder="email" v-model="email">
-                            <input type="text" placeholder="name" v-model="name">
-                            <button type="submit"v-on:click="getToken">get token</button>
+                        <div class="container">
+                            <div class="row">    
+                                <div class="col-lg-2 col-md-12">
+                                        <h3>request token</h3>    
+                                        <input type="text" placeholder="email" v-model="email">
+                                        <input type="text" placeholder="name" v-model="name">
+                                        <button type="submit"v-on:click="getToken">get token</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                    <div class="col-lg-2 col-md-12">
+                                            <label>File
+                                                <input type="file" id="file" ref="file" v-on:change="handleFileUpload($event)">
+                                            </label>
+                                            <button v-on:click="submitFile" type="submit">Submit</button>
+                                    </div> 
+                            </div>
+                        </div> 
                     </div>
-                    
-                    <div class="col-lg-2 col-md-12">
-                            <label>File
-                                <input type="file" id="file" ref="file" v-on:change="handleFileUpload($event)">
-                            </label>
-                            <button v-on:click="submitFile" type="submit">Submit</button>
-                    </div> 
-                
-                
                     <div class="col-lg-10">
-                        <ul id="showcase" class="flex-container wrap container" >
-                            <li class="card flex-item col-lg-3 col-md-12" v-for="image in getImage">
-                                    <div class="card-header">
-                                        <h2>{{image}}</h2>
-                                    </div>
-                                    <div class="card-body">
-                                        <img v-bind:src="image" width="290" heigth="218" width="290" heigth="218" >
-                                        <p class="text-secondary"></p>
-                                    </div>
-                                    <div class="card-footer"></div>
-                                         <p>footer</p>
-                                    </div>                            
-                            </li>
-                        </ul>
-                    </div>     
-                </div>
+                            <ul id="showcase" class="flex-container wrap container" >
+                                <li class="card flex-item col-lg-3 col-md-12" v-for="image in images">
+                                        <div class="card-header">
+                                        </div>
+                                        <div class="card-body">
+                                            <img v-bind:src="image.url" width="290" heigth="218" width="290" heigth="218" >
+                                            <p class="text-secondary"></p>
+                                        </div>
+                                        <div class="card-footer"></div>
+                                            <p>{{image.user.name}}</p>
+                                        </div>                            
+                                </li>
+                            </ul>
+                        </div>     
+                    </div>
             </div>
-            <div v-for:"img in getImage">
-                <p>{{image}}</p>
-            </div>
-            <p>{{getImage}}</p>
     </div>
 <script>
         var app = new Vue({
@@ -74,6 +74,9 @@
                 file:'',
                 images:[],
                 
+            },
+            created () {
+                this.getImage()
             },
             methods:{
                 getToken:function(){
@@ -100,21 +103,21 @@
                 },
                 submitFile:function(){
                     let formData = new FormData()
-                    formData.append('image', this.file)
+                    formData.append('file', this.file)
                     console.log(formData)
+                    console.log(localStorage.getItem("token"))
                     console.log("===================================")
                     axios
-                    .post('http://35.240.157.177/image', formData, {
-                        headers:{
-                            authorization:localStorage.getItem("token")
-                        }
+                    .post('http://35.240.157.177/image', 
+                        formData,{
+                            headers:{
+                                authorization:localStorage.getItem("token")
+                            },
                     })
                     .then(function(link){
-                        app.images.push(link.url)
+                        window.location.replace('index.html')
                     })  
-                }
-            },
-            computed:{
+                },
                 getImage:function(){
                     axios
                     .get('http://35.240.157.177/image',{
@@ -122,19 +125,14 @@
                             authorization:localStorage.getItem("token")
                         }
                     })
-                    .then(function(image){
-                        
-                        image.data.forEach(element => {
-                            app.images.push(element.url)
-                        });
-                        console.log(app.images)
-                        return app.images
+                    .then(function(images){
+                        app.images = images.data.reverse()
                     })
                     .catch(function(err){
                         console.log(err.message)
                     })
                 }
-            },
+            }
         })
 </script>
 </body>
