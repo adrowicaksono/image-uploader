@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="main.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- jQuery library -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <!-- Popper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <!-- Latest compiled and minified Bootstrap JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+            <h1>haloooo</h1>
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-2 col-md-12">
+                            <h3>request token</h3>    
+                            <input type="text" placeholder="email" v-model="email">
+                            <input type="text" placeholder="name" v-model="name">
+                            <button type="submit"v-on:click="getToken">get token</button>
+                    </div>
+                    
+                    <div class="col-lg-2 col-md-12">
+                            <label>File
+                                <input type="file" id="file" ref="file" v-on:change="handleFileUpload($event)">
+                            </label>
+                            <button v-on:click="submitFile" type="submit">Submit</button>
+                    </div> 
+                
+                
+                    <div class="col-lg-10">
+                        <ul id="showcase" class="flex-container wrap container" >
+                            <li class="card flex-item col-lg-3 col-md-12" v-for="image in getImage">
+                                    <div class="card-header">
+                                        <h2>{{image}}</h2>
+                                    </div>
+                                    <div class="card-body">
+                                        <img v-bind:src="image" width="290" heigth="218" width="290" heigth="218" >
+                                        <p class="text-secondary"></p>
+                                    </div>
+                                    <div class="card-footer"></div>
+                                         <p>footer</p>
+                                    </div>                            
+                            </li>
+                        </ul>
+                    </div>     
+                </div>
+            </div>
+            <div v-for:"img in getImage">
+                <p>{{image}}</p>
+            </div>
+            <p>{{getImage}}</p>
+    </div>
+<script>
+        var app = new Vue({
+            el: "#app",
+            data:{
+                email:'',
+                name : '',
+                file:'',
+                images:[],
+                
+            },
+            methods:{
+                getToken:function(){
+                    console.log(this.email)
+                    console.log(this.name)
+                    axios
+                    .post('http://35.240.157.177/request-token',{
+                        email:this.email,
+                        name:this.name,
+                    })
+                    .then(function(data){
+                        localStorage.setItem('token', data.data.uuid);
+                    })
+                    .catch(function(err){
+                        console.log(err.message)
+                    })
+
+                },
+                handleFileUpload : function(e){
+                    console.log(e.target.files[0])
+                    console.log("0000000000000000000000000000")
+                    this.file = e.target.files[0]
+
+                },
+                submitFile:function(){
+                    let formData = new FormData()
+                    formData.append('image', this.file)
+                    console.log(formData)
+                    console.log("===================================")
+                    axios
+                    .post('http://35.240.157.177/image', formData, {
+                        headers:{
+                            authorization:localStorage.getItem("token")
+                        }
+                    })
+                    .then(function(link){
+                        app.images.push(link.url)
+                    })  
+                }
+            },
+            computed:{
+                getImage:function(){
+                    axios
+                    .get('http://35.240.157.177/image',{
+                        headers:{
+                            authorization:localStorage.getItem("token")
+                        }
+                    })
+                    .then(function(image){
+                        
+                        image.data.forEach(element => {
+                            app.images.push(element.url)
+                        });
+                        console.log(app.images)
+                        return app.images
+                    })
+                    .catch(function(err){
+                        console.log(err.message)
+                    })
+                }
+            },
+        })
+</script>
+</body>
+    
+</html>
